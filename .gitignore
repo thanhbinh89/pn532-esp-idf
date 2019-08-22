@@ -50,3 +50,13 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+*/build/
+*/build_*/
+*/sources/unit_test/
+
+*/.vscode/
+*.config
+*.creator
+*.files
+*.includes
