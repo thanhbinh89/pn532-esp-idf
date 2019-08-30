@@ -22,10 +22,10 @@
 
 #define BLINK_GPIO CONFIG_BLINK_GPIO
 
-#define PN532_SCK (4)
-#define PN532_MOSI (16)
-#define PN532_SS (17)
-#define PN532_MISO (5)
+#define PN532_SCK (32)
+#define PN532_MOSI (26)
+#define PN532_SS (25)
+#define PN532_MISO (33)
 
 static const char *TAG = "APP";
 
@@ -38,9 +38,9 @@ void blink_task(void *pvParameter)
     while (1)
     {
         gpio_set_level(BLINK_GPIO, 0);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        vTaskDelay(900 / portTICK_PERIOD_MS);
         gpio_set_level(BLINK_GPIO, 1);
-        vTaskDelay(200 / portTICK_PERIOD_MS);
+        vTaskDelay(100 / portTICK_PERIOD_MS);
     }
 }
 
@@ -59,7 +59,7 @@ void nfc_task(void *pvParameter)
         }
     }
     // Got ok data, print it out!
-    ESP_LOGI(TAG, "Found chip PN5 0x%x", (versiondata >> 24) & 0xFF);
+    ESP_LOGI(TAG, "Found chip PN5 %x", (versiondata >> 24) & 0xFF);
     ESP_LOGI(TAG, "Firmware ver. %d.%d", (versiondata >> 16) & 0xFF, (versiondata >> 8) & 0xFF);
 
     // configure board to read RFID tags
@@ -162,8 +162,6 @@ void nfc_task(void *pvParameter)
 
 void app_main()
 {
-    ESP_LOGI(TAG, "Hello!");
-
     xTaskCreate(&blink_task, "blink_task", configMINIMAL_STACK_SIZE, NULL, 5, NULL);
     xTaskCreate(&nfc_task, "nfc_task", 4096, NULL, 4, NULL);
 }
