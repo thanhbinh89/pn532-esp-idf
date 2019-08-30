@@ -1,2 +1,6 @@
-# pn532-esp-idf
-pn532 ESP-IDF
+- esp-idf/
+- pn532-esp-idf/
+  - components/
+  - main/
+  - CMakeLists.txt
+  - Makefile
