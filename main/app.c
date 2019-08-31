@@ -14,10 +14,10 @@
 
 #define BLINK_GPIO CONFIG_BLINK_GPIO
 
-#define PN532_SCK (32)
-#define PN532_MOSI (26)
-#define PN532_SS (25)
-#define PN532_MISO (33)
+#define PN532_SCK CONFIG_PN532_SCK
+#define PN532_MOSI CONFIG_PN532_MOSI
+#define PN532_SS CONFIG_PN532_SS
+#define PN532_MISO CONFIG_PN532_MISO
 
 static const char *TAG = "APP";
 
