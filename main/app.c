@@ -38,7 +38,7 @@ void blink_task(void *pvParameter)
 
 void nfc_task(void *pvParameter)
 {
-    pn532_init_io(&nfc, PN532_SCK, PN532_MISO, PN532_MOSI, PN532_SS);
+    pn532_spi_init(&nfc, PN532_SCK, PN532_MISO, PN532_MOSI, PN532_SS);
     pn532_begin(&nfc);
 
     uint32_t versiondata = pn532_getFirmwareVersion(&nfc);
@@ -75,79 +75,14 @@ void nfc_task(void *pvParameter)
             // Display some basic information about the card
             ESP_LOGI(TAG, "Found an ISO14443A card");
             ESP_LOGI(TAG, "UID Length: %d bytes", uidLength);
-            ESP_LOGI(TAG, "UID Value");
-            esp_log_buffer_hexdump_internal(TAG, uid, uidLength, ESP_LOG_INFO);
-
-            if (uidLength == 4)
-            {
-                // We probably have a Mifare Classic card ...
-                ESP_LOGI(TAG, "Seems to be a Mifare Classic card (4 byte UID)");
-
-                // Now we need to try to authenticate it for read/write access
-                // Try with the factory default KeyA: 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF
-                ESP_LOGI(TAG, "Trying to authenticate block 4 with default KEYA value");
-                uint8_t keya[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-                // Start with block 4 (the first block of sector 1) since sector 0
-                // contains the manufacturer data and it's probably better just
-                // to leave it alone unless you know what you're doing
-                success = pn532_mifareclassic_AuthenticateBlock(&nfc, uid, uidLength, 4, 0, keya);
-
-                if (success)
-                {
-                    ESP_LOGI(TAG, "Sector 1 (Blocks 4..7) has been authenticated");
-                    uint8_t data[16];
-
-                    // If you want to write something to block 4 to test with, uncomment
-                    // the following line and this text should be read back in a minute
-                    //memcpy(data, (const uint8_t[]){ 'a', 'd', 'a', 'f', 'r', 'u', 'i', 't', '.', 'c', 'o', 'm', 0, 0, 0, 0 }, sizeof data);
-                    // success = mifareclassic_WriteDataBlock (4, data);
-
-                    // Try to read the contents of block 4
-                    success = pn532_mifareclassic_ReadDataBlock(&nfc, 4, data);
-
-                    if (success)
-                    {
-                        // Data seems to have been read ... spit it out
-                        ESP_LOGI(TAG, "Reading Block 4");
-                        esp_log_buffer_hexdump_internal(TAG, data, 16, ESP_LOG_INFO);
-
-                        // Wait a bit before reading the card again
-                        vTaskDelay(1000 / portTICK_RATE_MS);
-                    }
-                    else
-                    {
-                        ESP_LOGI(TAG, "Ooops ... unable to read the requested block.  Try another key?");
-                    }
-                }
-                else
-                {
-                    ESP_LOGI(TAG, "Ooops ... authentication failed: Try another key?");
-                }
-            }
-
-            if (uidLength == 7)
-            {
-                // We probably have a Mifare Ultralight card ...
-                ESP_LOGI(TAG, "Seems to be a Mifare Ultralight tag (7 byte UID)");
-
-                // Try to read the first general-purpose user page (#4)
-                ESP_LOGI(TAG, "Reading page 4");
-                uint8_t data[32];
-                success = pn532_mifareultralight_ReadPage(&nfc, 4, data);
-                if (success)
-                {
-                    // Data seems to have been read ... spit it out
-                    esp_log_buffer_hexdump_internal(TAG, data, 4, ESP_LOG_INFO);
-
-                    // Wait a bit before reading the card again
-                    vTaskDelay(1000 / portTICK_RATE_MS);
-                }
-                else
-                {
-                    ESP_LOGI(TAG, "Ooops ... unable to read the requested page!?");
-                }
-            }
+            ESP_LOGI(TAG, "UID Value:");
+            esp_log_buffer_hexdump_internal(TAG, uid, uidLength, ESP_LOG_INFO);   
+            vTaskDelay(1000 / portTICK_RATE_MS);         
+        }
+        else
+        {
+            // PN532 probably timed out waiting for a card
+            ESP_LOGI(TAG, "Timed out waiting for a card");
         }
     }
 }
